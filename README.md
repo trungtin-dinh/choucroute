@@ -1,20 +1,16 @@
 # CHOUCROUTE
 
-CHOUCROUTE (Coded Hyperspectral Observation Unsupervised Classification Relying On Univariate Tests Ensemble) is a MATLAB toolbox for unsupervised classification of coded hyperspectral data acquired by snapshot compressive imaging systems.
+CHOUCROUTE (Coded Hyperspectral Observation Unsupervised Classification Relying On Univariate Tests Ensemble) is a MATLAB function for unsupervised classification of coded hyperspectral data acquired by snapshot compressive imaging systems.
 
 Unlike conventional hyperspectral processing pipelines that rely on full hyperspectral cube reconstruction, CHOUCROUTE operates directly on coded measurements. The method is based on region-level statistical homogeneity tests and does not require ground truth labels or prior knowledge of the number of classes.
-
-This toolbox is primarily intended for research and exploratory analysis in compressive hyperspectral imaging and statistical signal processing.
 
 ---
 
 ## Features
 
 - Unsupervised classification of coded hyperspectral data
-- Direct operation on compressive measurements (no hyperspectral reconstruction required)
-- Region-based processing with detection, growth, and fusion stages
-- Statistical decision based on univariate tests on residuals
-- Configurable neighborhood definitions and decision thresholds
+- Iterative processing with detection, growth, and fusion stages
+- Statistical decision based on statistical tests
 - Fully implemented in MATLAB
 
 ---
