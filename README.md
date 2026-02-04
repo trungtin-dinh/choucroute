@@ -46,5 +46,4 @@ The Shapiro–Wilk normality test is supported either via the external `swtest` 
 Clone the repository and add it to your MATLAB path:
 
 ```matlab
-git clone https://github.com/USERNAME/choucroute.git
-addpath(genpath('choucroute'))
+git clone https://github.com/trungtin-dinh/choucroute.git
