@@ -1,5 +1,5 @@
 ---
-title: "CHOUCROUTE: Unsupervised classification of coded hyperspectral data using an ensemble of univariate statistical tests"
+title: "CHOUCROUTE: Unsupervised classification of coded hyperspectral data using univariate statistical tests"
 tags:
   - hyperspectral imaging
   - coded aperture
@@ -32,68 +32,46 @@ bibliography: paper.bib
 
 ## Summary
 
-CHOUCROUTE (Coded Hyperspectral Observations Unsupervised Classification Relying On Univariate Tests Ensemble) is a MATLAB implementation of an unsupervised, region-based classification method designed for *coded* hyperspectral acquisitions produced by snapshot systems of the CASSI family, and in particular the Dual-Disperser CASSI (DD-CASSI) architecture [@Gehm2007; @Hemsley2020calib; @Rouxel2023_ddcassi]. Instead of reconstructing a full hyperspectral cube prior to classification, CHOUCROUTE operates directly on the coded measurements, leveraging statistical tests applied to prediction residuals to detect homogeneous regions and build a label map with associated reference spectra.
+CHOUCROUTE (Coded Hyperspectral Observations Unsupervised Classification Relying On Univariate Tests Ensemble) is a MATLAB implementation of an unsupervised, region-based classification method designed for coded hyperspectral acquisitions produced by snapshot systems of the CASSI family, and in particular the Dual-Disperser CASSI (DD-CASSI) architecture [@Gehm2007; @DunlopGray2016; @Hemsley2020calib; @Rouxel2023_ddcassi]. Instead of reconstructing a full hyperspectral cube prior to classification, CHOUCROUTE operates directly on coded measurements by estimating class reference spectra and validating region homogeneity through statistical tests applied to prediction residuals.
 
 ## Statement of need
 
-Snapshot coded hyperspectral imagers such as DD-CASSI reduce acquisition time and data volume, while preserving spatial structure, by integrating information across selected wavelengths through programmable coded masks [@Gehm2007; @Hemsley2020calib; @Rouxel2023_ddcassi]. However, many downstream analysis pipelines still rely on reconstructing the full hyperspectral cube before performing classification. This reconstruction step can be computationally demanding and its quality depends strongly on the availability of an accurate segmentation into homogeneous regions, especially when the scene includes mixtures or spectral variability [@Hemsley2022_SA].
+Snapshot coded hyperspectral imagers such as DD-CASSI reduce acquisition time and data volume by multiplexing spatial and spectral information [@Gehm2007; @DunlopGray2016; @Hemsley2020calib; @Rouxel2023_ddcassi]. In many workflows, classification is performed only after reconstructing a hyperspectral cube, which can be computationally demanding and sensitive to modeling errors and noise. Moreover, supervised classification requires labeled ground truth, which is often unavailable or unreliable in real scenes.
 
-CHOUCROUTE addresses this gap by providing an unsupervised classification pipeline tailored to coded data: it detects homogeneous regions directly in the coded domain using an ensemble of univariate statistical tests and progressively grows and merges classes under explicit statistical validation.
+CHOUCROUTE addresses these issues by providing an unsupervised classification pipeline tailored to coded data. It produces a label map and estimated reference spectra without requiring full cube reconstruction and without requiring ground truth labels.
 
 ## Background and problem setting
 
-A coded acquisition can be modeled as a linear operator applied to the hyperspectral scene, followed by additive noise:
+A coded acquisition is modeled as a linear operator applied to the hyperspectral scene, followed by additive noise:
 
 $$
 \mathbf{d} = \mathbf{H}\mathbf{o} + \mathbf{n}.
 $$
 
-In DD-CASSI-like systems, $\mathbf{H}$ captures the spatio-spectral filtering induced by the coded mask and spectral integration on the detector, and the number of acquisitions $S$ is typically much smaller than the number of spectral bands $W$ [@Hemsley2020calib; @Rouxel2023_ddcassi]. Under a separability assumption, a homogeneous region can be represented by a single reference spectrum modulated by a spatial intensity map, enabling fast estimation of a reference spectrum from coded measurements [@Hemsley2022_SA].
-
-CHOUCROUTE combines: (i) reference spectrum estimation from coded data, (ii) prediction of coded measurements within candidate regions, and (iii) statistical validation of the residuals to decide whether the region is homogeneous and compatible with existing classes.
+In DD-CASSI-like systems, $\mathbf{H}$ captures the spatio-spectral filtering induced by the coded mask and the spectral integration on the detector, and the number of acquisitions $S$ is typically much smaller than the number of spectral bands $W$ [@Hemsley2020calib; @Rouxel2023_ddcassi]. Under a separability assumption, a homogeneous region can be represented by a single reference spectrum modulated by spatial intensity factors, enabling fast estimation of a reference spectrum from coded measurements [@Hemsley2022_SA].
 
 ## Method overview
 
-CHOUCROUTE is structured into three main stages:
+CHOUCROUTE is an iterative region-based pipeline with three stages: detection of statistically homogeneous seed regions, region growing, and class fusion. At each stage, candidate pixels are evaluated by estimating a reference spectrum (via the separability assumption), predicting coded measurements, and computing residuals between observed and predicted coded data. A region is accepted, expanded, or merged only if the residuals remain statistically consistent with the assumed noise model.
 
-1. **Homogeneous region detection**  
-   Candidate pixel blocks are selected (guided by spatial structure and intensity heuristics). A reference spectrum is estimated from the candidate set using a fast separability-based procedure [@Hemsley2022_SA]. The corresponding coded data are predicted and residuals are computed. Homogeneity is accepted only if residuals satisfy a set of statistical tests.
+## Statistical validation and options
 
-2. **Region growing**  
-   Starting from a validated seed region, neighboring pixels (or blocks) are iteratively considered for inclusion. Each growth step uses the same predict-and-test principle to ensure that adding pixels preserves statistical homogeneity.
-
-3. **Class merging**  
-   When a new homogeneous region is detected, CHOUCROUTE tests whether it is statistically compatible with any existing class. Compatibility is evaluated by forming a balanced pooled set of pixels from the two regions, estimating a reference spectrum, predicting coded data, and applying the statistical tests to the residuals. If validated, the regions are merged; otherwise a new class label is created.
-
-This three-stage design yields a label map and a set of class reference spectra, without requiring full cube reconstruction.
-
-## Statistical validation
-
-CHOUCROUTE assumes locally additive, centered Gaussian noise on coded measurements, with unknown variance, which is a common approximation in photon-limited imaging when intensities are sufficiently high [@GoureBrun1997]. The homogeneity decision relies on two complementary types of tests applied to residuals:
-
-- a **mean test** to check that residuals are centered (Student t-test) [@Student1908];
-- **normality tests** suited to small sample sizes, including Kolmogorov–Smirnov (with Lilliefors correction), Anderson–Darling, and Shapiro–Wilk [@Kolmogorov1933; @Lilliefors1967; @AndersonDarling1952; @ShapiroWilk1965].
-
-The test ensemble increases robustness across a range of residual behaviors and limited local sample sizes.
+CHOUCROUTE assumes that coded measurement noise can be locally approximated as additive, centered Gaussian noise with unknown variance, an approximation commonly used in optical measurements when photon counts are sufficiently high [@GoureBrun1997]. The residual validation uses a mean test to check that residuals are centered (Student t-test) [@Student1908], and a Gaussianity test to assess consistency with a normal distribution. The default Gaussianity test in CHOUCROUTE is Shapiro-Wilk [@ShapiroWilk1965]. Alternative Gaussianity tests can be selected through an option, including Kolmogorov-Smirnov (with Lilliefors correction when parameters are estimated) [@Kolmogorov1933; @Lilliefors1967] and Anderson-Darling [@AndersonDarling1952].
 
 ## Software description
 
-The repository provides:
-
-- the main MATLAB entry point `choucroute` implementing the detection/growth/merging pipeline;
-- helper functions for statistical testing and region handling;
-- a self-contained demo generating synthetic coded data with ground-truth labels.
-
-Inputs are coded measurements and the associated coding operators, together with a small number of algorithm parameters. Outputs include a label image and estimated reference spectra for the discovered classes.
+The repository provides the main MATLAB entry point `choucroute`, together with supporting routines for region handling, reference spectrum estimation, prediction, and statistical testing. The algorithm exposes a small set of parameters. In the default configuration, only the intra-class variability threshold $T_\psi$ requires manual tuning, while other parameters are set from data dimensions and standard statistical choices.
 
 ## Demonstration and expected results
 
-The demo illustrates the full workflow by generating a simple multi-class scene, defining smooth reference spectra and per-pixel intensity factors, producing coded measurements under a DD-CASSI-inspired linear model, and running CHOUCROUTE to visualize the estimated label map and class spectra.
+A self-contained demo script is included to generate a simple synthetic coded dataset with ground-truth regions, smooth class spectra, and per-pixel variability coefficients. The script runs CHOUCROUTE on these coded measurements and produces a label map and estimated class spectra, allowing users and reviewers to verify that the software executes correctly without external data.
 
 ## Limitations
 
-CHOUCROUTE is designed for coded acquisitions where a separability-based local model is meaningful. Performance degrades in strong mixture regions or when intra-class spectral variability violates the single-reference-spectrum assumption. As with other region-based approaches, results depend on parameter settings and on the validity of the local noise model.
+CHOUCROUTE is designed for coded acquisitions where a separability-based local model is meaningful. Performance degrades in strong mixture areas or when intra-class variability cannot be captured by a single reference spectrum scaled by per-pixel coefficients. As with other region-based methods, results depend on parameter settings and on the validity of the local noise approximation.
 
 ## Availability
 
 CHOUCROUTE is released as open-source MATLAB code. The repository includes a demo script and documentation to reproduce a complete run from synthetic data.
+
+## References
