@@ -33,7 +33,7 @@ The following MATLAB toolboxes are required depending on the selected options:
   - `graythresh`  
   Required only if the panchromatic threshold option `t_pan = "auto"` is used.
 
-The Shapiro–Wilk normality test is supported either via the external `swtest` function (MathWorks File Exchange) or through the lightweight internal implementation `swtestlite` included in the toolbox. No external dependency is required for the default configuration.
+The Shapiro–Wilk normality test is supported either via the external `swtest` function (MathWorks File Exchange : https://fr.mathworks.com/matlabcentral/fileexchange/13964-shapiro-wilk-and-shapiro-francia-normality-tests) or through the lightweight internal implementation `swtestlite` included in the toolbox. No external dependency is required for the default configuration.
 
 ---
 
