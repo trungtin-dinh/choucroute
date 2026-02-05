@@ -48,7 +48,7 @@ $$
 \mathbf{d} = \mathbf{H}\mathbf{o} + \mathbf{n}.
 $$
 
-In DD-CASSI-like systems, \(\mathbf{H}\) captures the spatio-spectral filtering induced by the coded mask and spectral integration on the detector, and the number of acquisitions \(S\) is typically much smaller than the number of spectral bands \(W\) [@Hemsley2020calib; @Rouxel2023_ddcassi]. Under a separability assumption, a homogeneous region can be represented by a single reference spectrum modulated by a spatial intensity map, enabling fast estimation of a reference spectrum from coded measurements [@Hemsley2022_SA].
+In DD-CASSI-like systems, $\mathbf{H}$ captures the spatio-spectral filtering induced by the coded mask and spectral integration on the detector, and the number of acquisitions $S$ is typically much smaller than the number of spectral bands $W$ [@Hemsley2020calib; @Rouxel2023_ddcassi]. Under a separability assumption, a homogeneous region can be represented by a single reference spectrum modulated by a spatial intensity map, enabling fast estimation of a reference spectrum from coded measurements [@Hemsley2022_SA].
 
 CHOUCROUTE combines: (i) reference spectrum estimation from coded data, (ii) prediction of coded measurements within candidate regions, and (iii) statistical validation of the residuals to decide whether the region is homogeneous and compatible with existing classes.
 
@@ -57,22 +57,22 @@ CHOUCROUTE combines: (i) reference spectrum estimation from coded data, (ii) pre
 CHOUCROUTE is structured into three main stages:
 
 1. **Homogeneous region detection**  
-   Candidate pixel blocks are selected (guided by spatial structure and intensity heuristics). A reference spectrum is estimated from the candidate set using a fast separability-based procedure [@Hemsley2022_SA]. The corresponding coded data are predicted and residuals are computed. Homogeneity is accepted only if residuals satisfy a set of statistical tests (see below).
+   Candidate pixel blocks are selected (guided by spatial structure and intensity heuristics). A reference spectrum is estimated from the candidate set using a fast separability-based procedure [@Hemsley2022_SA]. The corresponding coded data are predicted and residuals are computed. Homogeneity is accepted only if residuals satisfy a set of statistical tests.
 
 2. **Region growing**  
    Starting from a validated seed region, neighboring pixels (or blocks) are iteratively considered for inclusion. Each growth step uses the same predict-and-test principle to ensure that adding pixels preserves statistical homogeneity.
 
 3. **Class merging**  
-   When a new homogeneous region is detected, CHOUCROUTE tests whether it is statistically compatible with any existing class. Compatibility is evaluated by forming a balanced pooled set of pixels from the two regions/classes, estimating a reference spectrum, predicting coded data, and applying the statistical tests to the residuals. If validated, the regions are merged; otherwise a new class label is created.
+   When a new homogeneous region is detected, CHOUCROUTE tests whether it is statistically compatible with any existing class. Compatibility is evaluated by forming a balanced pooled set of pixels from the two regions, estimating a reference spectrum, predicting coded data, and applying the statistical tests to the residuals. If validated, the regions are merged; otherwise a new class label is created.
 
 This three-stage design yields a label map and a set of class reference spectra, without requiring full cube reconstruction.
 
 ## Statistical validation
 
-CHOUCROUTE assumes (locally) additive, centered Gaussian noise on coded measurements, with unknown variance, which is a common approximation in photon-limited imaging when intensities are sufficiently high [@GoureBrun1997]. The homogeneity decision relies on two complementary types of tests applied to residuals:
+CHOUCROUTE assumes locally additive, centered Gaussian noise on coded measurements, with unknown variance, which is a common approximation in photon-limited imaging when intensities are sufficiently high [@GoureBrun1997]. The homogeneity decision relies on two complementary types of tests applied to residuals:
 
 - a **mean test** to check that residuals are centered (Student t-test) [@Student1908];
-- **normality tests** suited to small sample sizes, including Kolmogorov-Smirnov (and Lilliefors variant), Anderson-Darling, and Shapiro-Wilk [@KS1933; @Lilliefors1967; @AndersonDarling1952; @ShapiroWilk1965].
+- **normality tests** suited to small sample sizes, including Kolmogorov–Smirnov (with Lilliefors correction), Anderson–Darling, and Shapiro–Wilk [@Kolmogorov1933; @Lilliefors1967; @AndersonDarling1952; @ShapiroWilk1965].
 
 The test ensemble increases robustness across a range of residual behaviors and limited local sample sizes.
 
@@ -82,20 +82,13 @@ The repository provides:
 
 - the main MATLAB entry point `choucroute` implementing the detection/growth/merging pipeline;
 - helper functions for statistical testing and region handling;
-- a self-contained demo generating synthetic coded data with ground-truth labels, allowing users to run the method without external datasets.
+- a self-contained demo generating synthetic coded data with ground-truth labels.
 
-Inputs are coded measurements and the associated coding operators, together with a small number of algorithm parameters (e.g., homogeneity threshold and significance level). Outputs include a label image and estimated reference spectra for the discovered classes.
+Inputs are coded measurements and the associated coding operators, together with a small number of algorithm parameters. Outputs include a label image and estimated reference spectra for the discovered classes.
 
 ## Demonstration and expected results
 
-The demo illustrates the full workflow:
-
-- generate a simple multi-class label image,
-- define smooth, distinct reference spectra (one per class) and per-pixel intensity factors,
-- produce coded measurements under a DD-CASSI-inspired linear model,
-- run CHOUCROUTE and visualize the estimated label map and class spectra.
-
-The demo is designed for fast execution and reproducibility, and serves as a minimal test for reviewers and users.
+The demo illustrates the full workflow by generating a simple multi-class scene, defining smooth reference spectra and per-pixel intensity factors, producing coded measurements under a DD-CASSI-inspired linear model, and running CHOUCROUTE to visualize the estimated label map and class spectra.
 
 ## Limitations
 
@@ -104,8 +97,3 @@ CHOUCROUTE is designed for coded acquisitions where a separability-based local m
 ## Availability
 
 CHOUCROUTE is released as open-source MATLAB code. The repository includes a demo script and documentation to reproduce a complete run from synthetic data.
-
-## References
-[1] M. E. Gehm, et al. *Single-shot compressive spectral imaging with dual-disperser architecture*, Optics Express, 15(21) : 1013–14027, Novembre 2007.
-[2] L. Drumetz et al. *Blind Hyperspectral Unmixing Using an Extended Linear Mixing Model to Address Spectral Variability*, IEEE Transactions on Image Processing, 25(8) : 3890-3905, Août 2016.
-[3] Shapiro, S. S., and Wilk, M. B. *An analysis of variance test for normality (complete samples)*. Biometrika, 52(3–4), 591–611, 1965.
