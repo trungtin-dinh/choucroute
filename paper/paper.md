@@ -44,9 +44,9 @@ CHOUCROUTE addresses this gap by providing an unsupervised classification pipeli
 
 A coded acquisition can be modeled as a linear operator applied to the hyperspectral scene, followed by additive noise:
 
-\[
+$$
 \mathbf{d} = \mathbf{H}\mathbf{o} + \mathbf{n}.
-\]
+$$
 
 In DD-CASSI-like systems, \(\mathbf{H}\) captures the spatio-spectral filtering induced by the coded mask and spectral integration on the detector, and the number of acquisitions \(S\) is typically much smaller than the number of spectral bands \(W\) [@Hemsley2020calib; @Rouxel2023_ddcassi]. Under a separability assumption, a homogeneous region can be represented by a single reference spectrum modulated by a spatial intensity map, enabling fast estimation of a reference spectrum from coded measurements [@Hemsley2022_SA].
 
